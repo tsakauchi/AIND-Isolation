@@ -212,8 +212,74 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        default_move = (-1, -1)
+
+        if depth <= 0:
+            return default_move
+
+        player_legal_moves = game.get_legal_moves(self)
+
+        if len(player_legal_moves) == 1:
+            return player_legal_moves[0]
+
+        best_max_score = float("-inf")
+        best_max_score_move = default_move
+
+        for player_move in player_legal_moves:
+            current_score = self.min_score(game.forecast_move(player_move), depth - 1)
+            if best_max_score < current_score:
+                best_max_score = current_score
+                best_max_score_move = player_move
+
+        return best_max_score_move
+
+    def max_score(self, game, depth):
+        """
+        Returns the max score from the player's move
+        :param game:
+        :param depth:
+        :return: player's max score
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        # terminal condition: if we reached the bottom (depth=0), return current score
+        if depth <= 0:
+            return self.score(game, self)
+
+        # max node maximizes score based on the PLAYER's move
+        player_legal_moves = game.get_legal_moves(self)
+
+        best_max_score = float("-inf")
+
+        for player_move in player_legal_moves:
+            best_max_score = max(best_max_score, self.min_score(game.forecast_move(player_move), depth - 1))
+
+        return best_max_score
+
+    def min_score(self, game, depth):
+        """
+        Returns the min score from the opponent's move
+        :param game:
+        :param depth:
+        :return: opponent's min score
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        # terminal condition: if we reached the bottom (depth=0), return current score
+        if depth <= 0:
+            return self.score(game, self)
+
+        # min node minimizes score based on the OPPONENT's move
+        opponent_legal_moves = game.get_legal_moves(game.get_opponent(self))
+
+        best_min_score = float("inf")
+
+        for opponent_move in opponent_legal_moves:
+            best_min_score = min(best_min_score, self.max_score(game.forecast_move(opponent_move), depth - 1))
+
+        return best_min_score
 
 
 class AlphaBetaPlayer(IsolationPlayer):
